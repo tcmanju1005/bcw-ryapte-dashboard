@@ -1,12 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0B1520" />
-    <title>KREDL Land Registration — Process Gantt</title>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KREDL Land Registration — Process Gantt</title>
+  <meta name="theme-color" content="#0B1520"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0B1520;font-family:'Segoe UI',sans-serif;color:#E0EAF4}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:#0B1520}
+    ::-webkit-scrollbar-thumb{background:#2A3D52;border-radius:2px}
+    input,textarea,button{font-family:'Segoe UI',sans-serif}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script>
+const {useState,createElement:h} = React;
+
+const STEPS=[
+{id:1,phase:"EOI + Document Collection",actor:"Farmer + KREDL Field",start:0,duration:2,durationLabel:"1 Day",color:"#2E86AB",critical:false,parallel:null,icon:"📁",
+docs:["Signed EOI / Consent Letter","Aadhaar Card (original + copy)","RTC / Pahani (within 15 days)","Mutation Register Extract","e-Khata (mandatory Oct 2025)","Survey Sketch Form 11E","Encumbrance Certificate (13 yrs)","PAN Card","Bank Passbook copy","Land tax paid receipt","Legal Heir Certificate (if needed)"],
+note:"All docs collected ONCE. Digital folder created per farmer. Same folder reused at every upload step — zero re-collection."},
+{id:2,phase:"Internal Scrutiny",actor:"KREDL Internal Team",start:2,duration:1,durationLabel:"AM",color:"#2E86AB",critical:false,parallel:"Runs parallel with Step 3",icon:"🔍",
+docs:["Fresh RTC from Bhoomi portal","EC check on Kaveri portal","Land Beat App — Govt. land flag check","Survey boundary verification"],
+note:"100% online. Bhoomi + Kaveri portals. Runs simultaneously while affidavit is being drafted."},
+{id:3,phase:"Affidavit + Stamp + Notary",actor:"KREDL / Advocate / Notary",start:2,duration:2,durationLabel:"1 Day",color:"#A23B72",critical:false,parallel:"Runs parallel with Step 2",icon:"📜",
+docs:["Affidavit (Annexure-II, KS Rules 1977)","Rs.100 Non-Judicial Stamp Paper","Form No.1","Farmer Aadhaar (for Notary)","Notary fee receipt"],
+note:"Drafted, stamped, and notarised in one visit. Completes same day. Scrutiny runs in background simultaneously."},
+{id:4,phase:"Land Conversion Portal Upload",actor:"KREDL",start:4,duration:1,durationLabel:"3–4 Hrs",color:"#F18F01",critical:false,parallel:null,icon:"⬆️",
+docs:["Notarised Affidavit","RTC (from farmer folder)","Survey Sketch Form 11E (from folder)","EC (from folder)","Site layout plan","KREDL project reference letter"],
+note:"⚡ 2025: Solar projects exempt from DC approval — fee still payable. All docs from pre-built folder. Upload takes 3–4 hours."},
+{id:5,phase:"Conversion Challan → HO Payment",actor:"KREDL Field + HO",start:5,duration:2,durationLabel:"1 Day",color:"#F18F01",critical:false,parallel:null,icon:"💳",
+docs:["System-generated Conversion Challan","Covering email with survey details","Finance authorisation (HO)","UTR / online payment confirmation"],
+note:"Challan emailed to HO on Day 3 PM. HO processes by Day 4 EOD."},
+{id:6,phase:"DC Online Verification + NA Certificate",actor:"Deputy Commissioner (Online)",start:7,duration:1,durationLabel:"3 Hrs",color:"#C73E1D",critical:false,parallel:null,icon:"🏛️",
+docs:["All portal-uploaded documents (auto-available to DC)","DC digital Order / NA Certificate","Updated RTC reflecting NA status (Bhoomi auto-update)"],
+note:"⚡ FULLY ONLINE. ~3 hours. 2025: Solar = automatic conversion, no physical DC order needed. Deemed approval after 30 days as safety net."},
+{id:7,phase:"Kaveri 2.0 — Deed Upload",actor:"KREDL",start:8,duration:1,durationLabel:"3–4 Hrs",color:"#5C6BC0",critical:false,parallel:null,icon:"🖥️",
+docs:["NA Certificate (DC digital order)","Fresh RTC — re-verify within 15 days","e-Khata (from folder)","Form 11E (from folder)","Aadhaar + PAN all parties (from folder)","Affidavit Annexure-II (from folder)","Form No.1 (from folder)","Declaration u/s 81A KLR Act 1961","Draft Sale / Lease Deed","KREDL Board Resolution / POA"],
+note:"Farmer folder docs pulled directly. Only new inputs: NA Certificate + Deed draft. Upload: 3–4 hours."},
+{id:8,phase:"Stamp Duty + Reg Fee → HO Payment",actor:"KREDL Field + HO",start:9,duration:2,durationLabel:"1 Day",color:"#5C6BC0",critical:false,parallel:null,icon:"💳",
+docs:["Stamp Duty Challan (system generated)","Registration Fee Challan (system generated)","Guidance Value printout from Kaveri","Finance authorisation (HO)","UTR numbers for both challans"],
+note:"Both challans generated together. Emailed to HO same day. Paid next working day."},
+{id:9,phase:"Sub-Registrar + Registration Certificate",actor:"Sub-Registrar + Farmer + KREDL",start:11,duration:4,durationLabel:"2 Days",color:"#1B6B3A",critical:true,parallel:null,icon:"🏆",
+docs:["Original Sale / Lease Deed","Kaveri 2.0 application printout","Stamp Duty + Reg Fee payment receipts","Aadhaar of all parties (biometric capture)","Two witnesses with Aadhaar","KREDL authorisation letter","NA Certificate","RTC, EC, e-Khata (from folder)","Registration Certificate — downloaded from Kaveri 2.0 on same day","Post-registration EC (confirms title transfer)"],
+note:"⚡ 2025: Virtual presentation enabled — farmer physical presence may not be required. 2-day buffer for farmer availability + Sub-Registrar server issues."}
+];
+
+const TOTAL_SLOTS=15,SLOT_WIDTH=52,LABEL_WIDTH=240;
+const VOTE_OPTIONS=["✅ Agree","⚠️ Too Short","❌ Too Long"];
+const voteColors={"✅ Agree":"#4CAF50","⚠️ Too Short":"#F18F01","❌ Too Long":"#C73E1D"};
+const FORMSPREE_URL="https://formspree.io/f/xeerkqpb";
+
+function App(){
+  const [active,setActive]=useState(null);
+  const [votes,setVotes]=useState({});
+  const [remarks,setRemarks]=useState({});
+  const [reviewerName,setReviewerName]=useState("");
+  const [submitted,setSubmitted]=useState(false);
+  const [submitting,setSubmitting]=useState(false);
+  const [submitError,setSubmitError]=useState("");
+  const [showSummary,setShowSummary]=useState(false);
+
+  async function handleSubmit(){
+    setSubmitting(true);setSubmitError("");
+    try{
+      const data={name:reviewerName};
+      STEPS.forEach(s=>{
+        const hv=!!votes[s.id],hr=!!(remarks[s.id]&&remarks[s.id].trim());
+        if(hv||hr){
+          data["Step_"+s.id+"_"+s.phase.replace(/\s+/g,"_")+"_Vote"]=votes[s.id]||"Not voted";
+          data["Step_"+s.id+"_"+s.phase.replace(/\s+/g,"_")+"_Remarks"]=(remarks[s.id]&&remarks[s.id].trim())||"None";
+        }
+      });
+      const vc=STEPS.filter(s=>votes[s.id]).length;
+      const rc=STEPS.filter(s=>remarks[s.id]&&remarks[s.id].trim()).length;
+      data["Summary"]=vc+" steps voted | "+rc+" steps with remarks";
+      const res=await fetch(FORMSPREE_URL,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(data)});
+      if(res.ok)setSubmitted(true);
+      else setSubmitError("Submission failed. Please try again.");
+    }catch(e){setSubmitError("Network error. Check internet and try again.");}
+    setSubmitting(false);
+  }
+
+  return h("div",{style:{fontFamily:"'Segoe UI',sans-serif",background:"#0B1520",minHeight:"100vh",padding:"20px 16px",color:"#E0EAF4"}},
+    // Header
+    h("div",{style:{marginBottom:20}},
+      h("div",{style:{fontSize:9,letterSpacing:4,color:"#4A7FA5",textTransform:"uppercase",marginBottom:4}},"KREDL · Pavagada Solar & BESS · Field Team Review"),
+      h("h1",{style:{margin:"0 0 4px",fontSize:20,fontWeight:800,color:"#E0EAF4"}},"Land Registration — Process Gantt"),
+      h("p",{style:{margin:0,fontSize:11,color:"#4A7FA5"}},"Single survey number · Optimistic timeline · Tap each step → review → vote")
+    ),
+    // Summary cards
+    h("div",{style:{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}},
+      [["Total","8 Days","#4CAF50"],["DC Verify","3 Hrs","#C73E1D"],["HO Payment ×2","1 Day each","#F18F01"],["Sub-Registrar","2 Days ⚠️","#1B6B3A"],["Steps 2+3","Parallel ⚡","#A23B72"]]
+      .map(([label,value,color])=>h("div",{key:label,style:{background:"#131F2E",border:"1px solid "+color+"44",borderTop:"3px solid "+color,borderRadius:8,padding:"8px 14px"}},
+        h("div",{style:{fontSize:16,fontWeight:800,color}},value),
+        h("div",{style:{fontSize:10,color:"#7A9BB5",textTransform:"uppercase",letterSpacing:0.5}},label)
+      ))
+    ),
+    // Chart
+    h("div",{style:{overflowX:"auto",WebkitOverflowScrolling:"touch"}},
+      h("div",{style:{minWidth:LABEL_WIDTH+TOTAL_SLOTS*SLOT_WIDTH+20}},
+        h("div",{style:{background:"#111D2B",borderRadius:12,border:"1px solid #1E3048",overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.5)"}},
+          // Header row
+          h("div",{style:{display:"flex",borderBottom:"2px solid #1E3048"}},
+            h("div",{style:{width:LABEL_WIDTH,minWidth:LABEL_WIDTH,padding:"8px 12px",fontSize:9,color:"#4A7FA5",letterSpacing:2,textTransform:"uppercase",borderRight:"1px solid #1E3048",background:"#0A1220"}},"Process Step"),
+            h("div",{style:{flex:1,display:"flex",minWidth:TOTAL_SLOTS*SLOT_WIDTH,background:"#0A1220"}},
+              Array.from({length:TOTAL_SLOTS},(_,i)=>{
+                const day=Math.floor(i/2)+1,isNewDay=i%2===0;
+                return h("div",{key:i,style:{width:SLOT_WIDTH,minWidth:SLOT_WIDTH,height:38,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",borderRight:isNewDay?"1px solid #2A3D52":"1px dashed #1A2C3E",background:isNewDay?"#0D1824":"#0B1520"}},
+                  isNewDay&&h("span",{style:{fontSize:11,fontWeight:700,color:"#4A7FA5"}},"Day "+day),
+                  h("span",{style:{fontSize:8,color:"#2A4060"}},isNewDay?"AM":"PM")
+                );
+              })
+            )
+          ),
+          // Step rows
+          STEPS.map((step,idx)=>{
+            const isActive=active===step.id,voted=votes[step.id],rowBg=isActive?"#162236":idx%2===0?"#111D2B":"#0E1826";
+            return h("div",{key:step.id},
+              h("div",{onClick:()=>setActive(isActive?null:step.id),style:{display:"flex",borderBottom:isActive?"none":"1px solid #1A2C3E",background:rowBg,cursor:"pointer",minHeight:56,transition:"background 0.12s",borderLeft:voted?"3px solid "+voteColors[voted]:"3px solid transparent"}},
+                // Label
+                h("div",{style:{width:LABEL_WIDTH,minWidth:LABEL_WIDTH,padding:"8px 10px",borderRight:"1px solid #1E3048",display:"flex",alignItems:"center",gap:8}},
+                  h("div",{style:{background:step.color+"33",border:"1px solid "+step.color+"66",borderRadius:6,width:26,height:26,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}},step.icon),
+                  h("div",{style:{flex:1,minWidth:0}},
+                    h("div",{style:{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}},
+                      h("span",{style:{fontSize:11,fontWeight:600,color:"#C8D8E8",lineHeight:1.3}},step.phase),
+                      step.parallel&&h("span",{style:{background:"#A23B7222",border:"1px solid #A23B7255",borderRadius:3,padding:"1px 5px",fontSize:8,color:"#D4729A",whiteSpace:"nowrap"}},"⚡ PARALLEL"),
+                      step.critical&&h("span",{style:{background:"#FF6B6B18",border:"1px solid #FF6B6B44",borderRadius:3,padding:"1px 5px",fontSize:8,color:"#FF8F8F",whiteSpace:"nowrap"}},"⚠️ CRITICAL")
+                    ),
+                    h("div",{style:{fontSize:9,color:"#3A5570",marginTop:1}},step.actor),
+                    voted&&h("div",{style:{fontSize:10,color:voteColors[voted],marginTop:2,fontWeight:700}},voted)
+                  )
+                ),
+                // Bar
+                h("div",{style:{position:"relative",flex:1,display:"flex",alignItems:"center",minWidth:TOTAL_SLOTS*SLOT_WIDTH}},
+                  Array.from({length:TOTAL_SLOTS},(_,i)=>h("div",{key:i,style:{position:"absolute",left:i*SLOT_WIDTH,width:SLOT_WIDTH,height:"100%",borderRight:i%2===0?"1px solid #1A2C3E":"1px dashed #131F2E",background:i%2===0?"transparent":"#0B152012"}})),
+                  h("div",{style:{position:"absolute",left:step.start*SLOT_WIDTH+3,width:step.duration*SLOT_WIDTH-6,height:32,background:"linear-gradient(90deg,"+step.color+"EE 0%,"+step.color+"77 100%)",borderRadius:6,display:"flex",alignItems:"center",paddingLeft:10,boxShadow:"0 2px 10px "+step.color+"33",border:"1px solid "+step.color+"88",zIndex:2}},
+                    h("span",{style:{fontSize:11,fontWeight:800,color:"#fff",whiteSpace:"nowrap"}},step.durationLabel)
+                  )
+                )
+              ),
+              // Expanded panel
+              isActive&&h("div",{style:{background:"#0C1828",borderBottom:"2px solid #1E3048",borderLeft:"4px solid "+step.color,padding:"14px 16px"}},
+                h("div",{style:{display:"flex",gap:24,flexWrap:"wrap",marginBottom:16}},
+                  h("div",{style:{minWidth:200,flex:1}},
+                    h("div",{style:{fontSize:9,color:"#4A7FA5",letterSpacing:2,textTransform:"uppercase",marginBottom:6}},"Step "+step.id+" · "+step.durationLabel),
+                    h("div",{style:{fontSize:14,fontWeight:700,color:"#E0EAF4",marginBottom:4}},step.phase),
+                    h("div",{style:{fontSize:10,color:"#4A7FA5",marginBottom:10}},step.actor),
+                    h("div",{style:{background:"#F18F0110",border:"1px solid #F18F0130",borderRadius:6,padding:"7px 10px",fontSize:11,color:"#F4C261",lineHeight:1.6}},step.note)
+                  ),
+                  h("div",{style:{flex:2,minWidth:220}},
+                    h("div",{style:{fontSize:9,color:"#4A7FA5",letterSpacing:2,textTransform:"uppercase",marginBottom:6}},"Documents Required ("+step.docs.length+")"),
+                    h("div",{style:{display:"flex",flexWrap:"wrap",gap:5}},
+                      step.docs.map((d,i)=>h("span",{key:i,style:{background:step.color+"15",border:"1px solid "+step.color+"40",borderRadius:4,padding:"3px 8px",fontSize:10,color:"#B0C8E0"}},d))
+                    )
+                  )
+                ),
+                // Vote section
+                h("div",{style:{borderTop:"1px solid #1E3048",paddingTop:12}},
+                  h("div",{style:{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:10}},
+                    h("span",{style:{fontSize:11,fontWeight:700,color:"#7A9BB5"}},"Is "+step.durationLabel+" realistic?"),
+                    h("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+                      VOTE_OPTIONS.map(opt=>h("button",{key:opt,
+                        onClick:e=>{e.stopPropagation();setVotes(v=>({...v,[step.id]:opt}));},
+                        style:{background:votes[step.id]===opt?voteColors[opt]+"33":"#131F2E",border:"2px solid "+(votes[step.id]===opt?voteColors[opt]:"#2A3D52"),borderRadius:6,padding:"6px 14px",fontSize:12,fontWeight:700,color:votes[step.id]===opt?voteColors[opt]:"#7A9BB5",cursor:"pointer",transition:"all 0.15s"}},opt))
+                    ),
+                    votes[step.id]&&h("span",{style:{fontSize:11,color:voteColors[votes[step.id]],fontWeight:700}},"Recorded ✓")
+                  ),
+                  h("div",null,
+                    h("div",{style:{fontSize:10,color:"#4A7FA5",letterSpacing:1,textTransform:"uppercase",marginBottom:5}},"💬 Remarks / Bottlenecks (Optional)"),
+                    h("textarea",{
+                      placeholder:'e.g. "Notary takes 2 days in Pavagada" or "Farmer RTC often expired"',
+                      value:remarks[step.id]||"",
+                      onClick:e=>e.stopPropagation(),
+                      onChange:e=>{e.stopPropagation();setRemarks(r=>({...r,[step.id]:e.target.value}));},
+                      rows:2,
+                      style:{width:"100%",background:"#0D1824",border:"1px solid "+(remarks[step.id]?"#5C6BC0":"#2A3D52"),borderRadius:6,padding:"8px 12px",fontSize:11,color:"#C8D8E8",resize:"vertical",outline:"none",boxSizing:"border-box",lineHeight:1.6}
+                    }),
+                    remarks[step.id]&&h("div",{style:{fontSize:10,color:"#5C6BC0",marginTop:3}},"✏️ Remark saved")
+                  )
+                ),
+                // Close button
+                h("div",{style:{marginTop:14,textAlign:"center"}},
+                  h("button",{
+                    onClick:e=>{e.stopPropagation();setActive(null);},
+                    style:{background:"#1E3048",border:"1px solid #2A3D52",borderRadius:6,padding:"7px 28px",fontSize:12,fontWeight:700,color:"#7A9BB5",cursor:"pointer"}
+                  },"✕ Close")
+                )
+              )
+            );
+          }),
+          // Footer
+          h("div",{style:{background:"#0A1220",borderTop:"2px solid #1E3048",padding:"12px 16px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}},
+            h("div",{style:{background:"#4CAF5020",border:"1px solid #4CAF5050",borderRadius:6,padding:"5px 14px",fontSize:13,fontWeight:800,color:"#4CAF50"}},"✅ Total: 8 Working Days"),
+            h("div",{style:{fontSize:10,color:"#4A7FA5"}},Object.keys(votes).length+"/"+STEPS.length+" steps reviewed"),
+            h("div",{style:{marginLeft:"auto",fontSize:10,color:"#2A4060"}},"Tap any row → review → vote")
+          )
+        )
+      )
+    ),
+    // Submit section
+    h("div",{style:{marginTop:20,background:"#111D2B",border:"1px solid #1E3048",borderRadius:10,padding:16,position:"relative",zIndex:10,touchAction:"manipulation"}},
+      h("div",{style:{fontSize:13,fontWeight:700,color:"#B0C4D8",marginBottom:12}},"📋 Submit Your Review — Auto-saved to KREDL HO"),
+      // Vote summary
+      Object.keys(votes).length>0&&h("div",{style:{marginBottom:14}},
+        h("div",{onClick:()=>setShowSummary(!showSummary),style:{fontSize:11,color:"#4A7FA5",cursor:"pointer",marginBottom:8,userSelect:"none"}},
+          (showSummary?"▼":"▶")+" Review your votes ("+Object.keys(votes).length+"/"+STEPS.length+" voted)"
+        ),
+        showSummary&&h("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+          STEPS.map(s=>h("div",{key:s.id,style:{background:"#0D1824",borderRadius:6,border:"1px solid "+(votes[s.id]?voteColors[votes[s.id]]+"33":"#1E3048"),padding:"8px 12px"}},
+            h("div",{style:{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:remarks[s.id]?6:0}},
+              h("span",{style:{fontSize:11,color:"#7A9BB5",flex:1,minWidth:160}},"Step "+s.id+" · "+s.phase),
+              h("span",{style:{fontSize:11,fontWeight:700,color:votes[s.id]?voteColors[votes[s.id]]:"#3A5570",background:votes[s.id]?voteColors[votes[s.id]]+"18":"#1E304830",border:"1px solid "+(votes[s.id]?voteColors[votes[s.id]]+"44":"#2A3D52"),borderRadius:4,padding:"1px 8px",whiteSpace:"nowrap"}},votes[s.id]||"Not voted"),
+              h("span",{style:{fontSize:10,color:"#3A5570",whiteSpace:"nowrap"}},s.durationLabel)
+            ),
+            remarks[s.id]&&h("div",{style:{fontSize:11,color:"#A0C4E0",background:"#5C6BC015",border:"1px solid #5C6BC030",borderRadius:4,padding:"4px 8px",lineHeight:1.5}},"💬 "+remarks[s.id])
+          ))
+        )
+      ),
+      // Name input
+      h("div",{style:{marginBottom:12}},
+        h("input",{
+          placeholder:"Your Full Name *",
+          value:reviewerName,
+          onChange:e=>setReviewerName(e.target.value),
+          style:{width:"100%",boxSizing:"border-box",background:"#0D1824",border:"1px solid "+(reviewerName?"#4CAF50":"#2A3D52"),borderRadius:6,padding:"10px 14px",fontSize:12,color:"#E0EAF4",outline:"none"}
+        })
+      ),
+      // Submit button
+      h("button",{
+        onTouchEnd:e=>{e.stopPropagation();e.preventDefault();if(reviewerName.trim()&&!submitted&&!submitting)handleSubmit();},
+        onClick:e=>{e.stopPropagation();if(reviewerName.trim()&&!submitted&&!submitting)handleSubmit();},
+        style:{width:"100%",background:submitted?"#1B6B3A":reviewerName.trim()?"#4CAF50":"#1E3048",border:submitted?"none":reviewerName.trim()?"2px solid #4CAF50":"2px solid #2A3D52",borderRadius:8,padding:14,fontSize:14,fontWeight:800,color:submitted?"#81C784":reviewerName.trim()?"#ffffff":"#3A5570",cursor:reviewerName.trim()&&!submitted&&!submitting?"pointer":"default",transition:"background 0.2s",opacity:submitting?0.7:1,touchAction:"manipulation"}
+      },submitted?"✅ Submitted Successfully!":submitting?"⏳ Submitting...":"Submit Review to KREDL HO"),
+      submitError&&h("div",{style:{fontSize:11,color:"#FF6B6B",marginTop:8}},submitError),
+      submitted&&h("div",{style:{marginTop:12,background:"#4CAF5012",border:"1px solid #4CAF5035",borderRadius:8,padding:"12px 14px",fontSize:12,color:"#81C784",lineHeight:1.6}},
+        "✅ Thank you ",h("strong",null,reviewerName),"! Your review is saved to KREDL HO automatically."
+      )
+    ),
+    // Bottleneck note
+    h("div",{style:{marginTop:12,padding:"10px 14px",background:"#FF6B6B0D",border:"1px solid #FF6B6B2A",borderRadius:8,fontSize:11,color:"#FF9A9A"}},
+      "⚠️ ",h("strong",null,"Remaining bottleneck:")," Sub-Registrar (2 days) — farmer availability + server issues. Pre-book SR appointment right after Kaveri 2.0 upload to compress to ",h("strong",null,"~6 days"),"."
+    )
+  );
+}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(h(App,null));
+</script>
+</body>
 </html>
