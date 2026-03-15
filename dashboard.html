@@ -34,12 +34,6 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:#1A2F3E;min-hei
 .title{font-size:19px;font-weight:700;color:#fff;line-height:1.2}
 .subtitle{font-size:10px;color:var(--text2);margin-top:2px}
 
-/* NAME BOX */
-.name-box{margin:12px 16px;background:#fff;border:2px solid var(--accent);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,191,165,0.1)}
-.name-label{font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-family:'Space Mono',monospace;margin-bottom:3px;font-weight:700}
-.name-input{width:100%;background:transparent;border:none;outline:none;font-size:13px;font-weight:600;color:#1A2F3E;font-family:'DM Sans',sans-serif}
-.name-input::placeholder{color:#90B8C8;font-weight:400}
-.name-hint{font-size:9px;color:#90B8C8;margin-top:2px}
 
 #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:16px}
 .spinner{width:36px;height:36px;border:3px solid #C8E6C9;border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
@@ -260,17 +254,6 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:#1A2F3E;min-hei
   <div class="subtitle">Ryapte Gram Panchayat · Tumkur District · GO No. Energy 178 VSS 2025</div>
 </div>
 
-<!-- NAME BOX -->
-<div class="name-box">
-  <div style="font-size:18px">👤</div>
-  <div style="flex:1">
-    <div class="name-label">Your Name (Field Officer)</div>
-    <input class="name-input" id="my-name" placeholder="Type your name to highlight your steps..." oninput="onNameChange()"/>
-    <div class="name-hint">Your assigned steps glow yellow · Your cards rise to top</div>
-  </div>
-</div>
-
-<div id="loading"><div class="spinner"></div><div class="loading-text">Fetching live data...</div></div>
 <div id="error-box"></div>
 
 <!-- PIPELINE POPUP -->
@@ -382,7 +365,16 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:#1A2F3E;min-hei
 
   <!-- OFFICERS TAB -->
   <div id="tab-officers" style="display:none">
-    <div class="officer-section" id="officer-section"></div>
+    <div class="officer-section" id="officer-section">
+    <!-- Officer name search -->
+    <div style="margin:8px 16px 0;background:#fff;border:2px solid var(--accent);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,191,165,0.1)">
+      <div style="font-size:18px">👤</div>
+      <div style="flex:1">
+        <div style="font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-family:'Space Mono',monospace;margin-bottom:3px;font-weight:700">Your Name</div>
+        <input style="width:100%;background:transparent;border:none;outline:none;font-size:13px;font-weight:600;color:#1A2F3E;font-family:'DM Sans',sans-serif" id="my-name" placeholder="Type your name to see your performance..." oninput="onNameChange()"/>
+        <div style="font-size:9px;color:#90B8C8;margin-top:2px">Your steps highlight yellow in Farmers tab</div>
+      </div>
+    </div></div>
   </div>
 
   <!-- VILLAGES TAB -->
@@ -403,7 +395,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:#1A2F3E;min-hei
 </div>
 
 <script>
-const SHEET_ID="17Te7-IHsKXsI1dN-c34XHui1EU0rZWDs";
+const SHEET_ID="1y1oox8hQImffMAqM8y12N7we2rmELBbG";
 const SHEET_NAME="Master Tracker";
 const API_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&headers=2`;
 const STEPS=["EOI + Docs","Scrutiny","Affidavit","Conversion Upload","HO Payment 1","DC Verification","Kaveri 2.0 Upload","HO Payment 2","Registration"];
@@ -939,3 +931,4 @@ setInterval(loadData,120000);
 </script>
 </body>
 </html>
+
