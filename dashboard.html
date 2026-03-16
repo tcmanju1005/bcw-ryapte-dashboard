@@ -93,7 +93,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:#1A2F3E;min-hei
 .result-count{font-size:9px;color:#4A7F90;padding:2px 16px 4px;font-family:'Space Mono',monospace}
 
 /* FARMER CARDS */
-.cards-container{padding:4px 16px 20px;display:flex;flex-direction:column;gap:7px}
+.cards-container{padding:4px 16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:7px}
 .farmer-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:all 0.15s;box-shadow:var(--card-shadow)}
 .farmer-card.has-my-steps{border-color:var(--yellow);box-shadow:0 0 0 2px #FFD74030,var(--card-shadow)}
 .farmer-card.is-stuck{border-color:var(--red)}
